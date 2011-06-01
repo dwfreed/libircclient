@@ -1,0 +1,8 @@
+syntax: glob
+config.log
+config.status
+config.h
+Makefile
+*.a
+*.o
+*.swp
