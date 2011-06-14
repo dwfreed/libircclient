@@ -43,6 +43,9 @@
 #ifndef INCLUDE_LIBIRC_H
 #define INCLUDE_LIBIRC_H
 
+#define __need_size_t
+#include <stddef.h>
+
 #if !defined (WIN32)
 	#include <sys/select.h>	/* fd_set */
 #else
