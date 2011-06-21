@@ -20,7 +20,9 @@ ${LIBRARY_NAME}.a: ${OBJS}
 	@$(AR) rc ${LIBRARY_NAME}.a ${OBJS}
 	@[[ -z "$(RANLIB)" ]] || $(RANLIB) ${LIBRARY_NAME}.a
 
-global.h: libircclient.h libircclient_errors.h libircclient_events.h libircclient_options.h libircclient_params.h libircclient_rfcnumerics.h libircclient_session.h
+global.h: libircclient.h
+
+libircclient.h: libircclient_errors.h libircclient_events.h libircclient_options.h libircclient_params.h libircclient_rfcnumerics.h libircclient_session.h
 
 %.o: %.c Makefile global.h
 	@echo "Compiling $<"
