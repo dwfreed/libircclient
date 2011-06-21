@@ -3,8 +3,9 @@
 #ifndef IN_LIBIRCCLIENT_H
 	#error This file should not be included directly; include just libircclient.h
 #endif
-typedef void (*irc_event_callback)(struct irc_session *session, const char *event, const char *origin, const char **params, unsigned int count);
-typedef void (*irc_eventcode_callback)(struct irc_session *session, unsigned int event, const char *origin, const char **params, unsigned int count);
+typedef struct irc_session irc_session_struct;
+typedef void (*irc_event_callback)(irc_session_struct *session, const char *event, const char *origin, const char **params, unsigned int count);
+typedef void (*irc_eventcode_callback)(irc_session_struct *session, unsigned int event, const char *origin, const char **params, unsigned int count);
 struct irc_callbacks {
 	irc_event_callback event_channel;
 	irc_event_callback event_channel_notice;
@@ -18,7 +19,7 @@ struct irc_callbacks {
 	irc_event_callback event_mode;
 	irc_event_callback event_nick;
 	irc_event_callback event_notice;
-	irc_event_callback event_numeric;
+	irc_eventcode_callback event_numeric;
 	irc_event_callback event_part;
 	irc_event_callback event_privmsg;
 	irc_event_callback event_quit;

@@ -4,12 +4,13 @@
 	#error This file should not be included directly; include just libircclient.h
 #endif
 #include <glib.h>
+#include <netinet/in.h>
 #include "libircclient_params.h"
 struct irc_session {
 	void *ctx;
-	int options
-	int lasterror
-	char incoming_buffer[LIBIRC_BUFFER_SIZE];
+	int options;
+	int lasterror;
+	char incoming_buffer[LIBIRCCLIENT_BUFFER_SIZE];
 	unsigned int incoming_offset;
 	GAsyncQueue *outgoing_queue;
 	int socket;
@@ -22,5 +23,5 @@ struct irc_session {
 	char *nick;
 	struct in6_addr local_address;
 	struct irc_callbacks callbacks;
-}
+};
 #endif /* LIBIRCCLIENT_SESSION_H */

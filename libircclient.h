@@ -4,11 +4,11 @@
 extern "C" {
 #endif
 #define IN_LIBIRCCLIENT_H
+#include "libircclient_options.h"
+#include "libircclient_events.h"
+#include "libircclient_session.h"
 #include "libircclient_errors.h"
 #include "libircclient_rfcnumerics.h"
-#include "libircclient_events.h"
-#include "libircclient_options.h"
-#include "libircclient_session.h"
 struct irc_session *irc_create_session(struct irc_callbacks *callbacks);
 void irc_destroy_session(struct irc_session *session);
 int irc_connect(struct irc_session *session, const char *server, unsigned short port, const char *server_password, const char *nick, const char *username, const char *realname);
