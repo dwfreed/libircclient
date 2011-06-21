@@ -1,7 +1,7 @@
 #include "global.h"
 
 int irc_errno(struct irc_session *session){
-	return session->lasterror;
+	return session->last_error;
 }
 
 const char *irc_strerror(int ircerrno){

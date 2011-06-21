@@ -9,7 +9,7 @@
 struct irc_session {
 	void *ctx;
 	int options;
-	int lasterror;
+	int last_error;
 	char incoming_buffer[LIBIRCCLIENT_BUFFER_SIZE];
 	unsigned int incoming_offset;
 	GAsyncQueue *outgoing_queue;
@@ -18,9 +18,10 @@ struct irc_session {
 	int motd_received;
 	char *server;
 	char *server_password;
-	char *realname;
-	char *username;
 	char *nick;
+	char *username;
+	char *hostname;
+	char *realname;
 	struct in6_addr local_address;
 	struct irc_callbacks callbacks;
 };
