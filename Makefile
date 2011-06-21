@@ -1,7 +1,7 @@
 LIBRARY_NAME = libircclient
 
 # All of the C files we'll need go here, but with a .o extension
-OBJS = errors.o
+OBJS = errors.o libircclient.o
 
 LIBS = glib-2.0 gthread-2.0
 
