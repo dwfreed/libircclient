@@ -10,7 +10,7 @@ struct irc_session {
 	void *ctx;
 	int options;
 	int last_error;
-	char incoming_buffer[LIBIRCCLIENT_BUFFER_SIZE];
+	char *incoming_buffer;
 	unsigned int incoming_offset;
 	GAsyncQueue *outgoing_queue;
 	int socket;
