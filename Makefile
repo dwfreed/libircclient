@@ -6,7 +6,7 @@ OBJS = libircclient.o
 LIBS = glib-2.0 gthread-2.0
 
 CC = gcc -ggdb -Wall -Werror -Wextra
-CFLAGS = -fPIC $(shell pkg-config --cflags ${LIBS})
+CFLAGS = -D_GNU_SOURCE -D_FORTIFY_SOURCE=2 -fPIC $(shell pkg-config --cflags ${LIBS})
 LDFLAGS = $(shell pkg-config --libs ${LIBS})
 
 all: ${LIBRARY_NAME}.so ${LIBRARY_NAME}.a
