@@ -37,7 +37,7 @@ struct irc_session *irc_create_session(struct irc_callbacks *callbacks){
 		return NULL;
 	}
 	session->socket = -1;
-	session->outgoing_queue = g_async_queue_new_full(g_free);
+	session->outgoing_queue = g_async_queue_new_full(free);
 	memcpy(&session->callbacks, callbacks, sizeof(struct irc_callbacks));
 	return session;
 }
@@ -99,7 +99,8 @@ int irc_connect(struct irc_session *session, const char *server, unsigned short 
 		return 1;
 	}
 	if( !inet_aton(server, &saddr.sin_addr) ){
-		char *str_port = g_strdup_printf("%hu", port);
+		char *str_port;
+		asprintf(&str_port, "%hu", port);
 		struct addrinfo hints, *result;
 		memset(&hints, 0, sizeof(struct addrinfo));
 		hints.ai_family = AF_INET;
@@ -107,7 +108,7 @@ int irc_connect(struct irc_session *session, const char *server, unsigned short 
 		hints.ai_protocol = 0;
 		hints.ai_flags = AI_NUMERICSERV | AI_ADDRCONFIG;
 		if( !getaddrinfo(server, str_port, &hints, &result) ){
-			g_free(str_port);
+			free(str_port);
 			struct addrinfo *rp;
 			char im_done = FALSE;
 			for( rp = result; rp != NULL; rp = rp->ai_next ){
@@ -133,7 +134,7 @@ int irc_connect(struct irc_session *session, const char *server, unsigned short 
 				return 1;
 			}
 		} else {
-			g_free(str_port);
+			free(str_port);
 			session->last_error = LIBIRCCLIENT_ERR_RESOLV;
 			return 1;
 		}
@@ -185,7 +186,8 @@ int irc_connect6(struct irc_session *session, const char *server, unsigned short
 		return 1;
 	}
 	if( inet_pton(AF_INET6, server, &saddr.sin6_addr) < 1 ){
-		char *str_port = g_strdup_printf("%hu", port);
+		char *str_port;
+		asprintf(&str_port, "%hu", port);
 		struct addrinfo hints, *result;
 		memset(&hints, 0, sizeof(struct addrinfo));
 		hints.ai_family = AF_INET6;
@@ -193,7 +195,7 @@ int irc_connect6(struct irc_session *session, const char *server, unsigned short
 		hints.ai_protocol = 0;
 		hints.ai_flags = AI_NUMERICSERV | AI_V4MAPPED | AI_ALL | AI_ADDRCONFIG;
 		if( !getaddrinfo(server, str_port, &hints, &result) ){
-			g_free(str_port);
+			free(str_port);
 			struct addrinfo *rp;
 			char im_done = FALSE;
 			for( rp = result; rp != NULL; rp = rp->ai_next ){
@@ -219,7 +221,7 @@ int irc_connect6(struct irc_session *session, const char *server, unsigned short
 				return 1;
 			}
 		} else {
-			g_free(str_port);
+			free(str_port);
 			session->last_error = LIBIRCCLIENT_ERR_RESOLV;
 			return 1;
 		}
@@ -544,7 +546,7 @@ static int irc_process_select_descriptors(struct irc_session *session, fd_set *i
 			if( session->options & LIBIRCCLIENT_OPTION_DEBUG ){
 				printf("SEND: %s\n", outgoing_message);
 			}
-			g_free(outgoing_message);
+			free(outgoing_message);
 			queue_length = g_async_queue_length(session->outgoing_queue);
 		}
 	}
