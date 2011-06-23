@@ -70,7 +70,10 @@ int irc_connect(struct irc_session *session, const char *server, unsigned short 
 	}
 	if( !inet_aton(server, &saddr.sin_addr) ){
 		char *str_port;
-		asprintf(&str_port, "%hu", port);
+		if( asprintf(&str_port, "%hu", port) < 0 ){
+			session->last_error = LIBIRCCLIENT_ERR_NOMEM;
+			return 1;
+		}
 		struct addrinfo hints, *result;
 		memset(&hints, 0, sizeof(struct addrinfo));
 		hints.ai_family = AF_INET;
@@ -157,7 +160,10 @@ int irc_connect6(struct irc_session *session, const char *server, unsigned short
 	}
 	if( inet_pton(AF_INET6, server, &saddr.sin6_addr) < 1 ){
 		char *str_port;
-		asprintf(&str_port, "%hu", port);
+		if( asprintf(&str_port, "%hu", port) < 0 ){
+			session->last_error = LIBIRCCLIENT_ERR_NOMEM;
+			return 1;
+		}
 		struct addrinfo hints, *result;
 		memset(&hints, 0, sizeof(struct addrinfo));
 		hints.ai_family = AF_INET6;
@@ -568,7 +574,11 @@ int irc_send_raw(struct irc_session *session, const char *format, ...){
 	new_format = (char *)realloc(new_format, format_length + 3);
 	strcat(new_format, "\r\n");
 	va_start(va_arg_list, format);
-	vasprintf(&command, new_format, va_arg_list);
+	if( vasprintf(&command, new_format, va_arg_list) < 0 ){
+		session->last_error = LIBIRCCLIENT_ERR_NOMEM;
+		free(new_format);
+		return 1;
+	}
 	va_end(va_arg_list);
 	g_async_queue_push(session->outgoing_queue, command);
 	free(command);
@@ -657,7 +667,7 @@ int irc_cmd_msg(struct irc_session *session, const char *nch, const char *text){
 		return 1;
 	}
 	char *temp_text = strdup(text), *new_text = temp_text;
-	int length = strlen(new_text), max_text_length = 512 - (strlen(session->nick) + strlen(session->username) + strlen(session->hostname) + strlen(nch) + 17), ret_val;
+	int length = strlen(new_text), max_text_length = 512 - (strlen(session->nick) + strlen(session->username) + strlen(session->hostname) + strlen(nch) + 17), ret_val = 0;
 	while( length > 0 ){
 		ret_val = irc_send_raw(session, "PRIVMSG %s :%s", nch, new_text);
 		new_text = &new_text[max_text_length];
@@ -673,7 +683,10 @@ int irc_cmd_msg_to(struct irc_session *session, const char *channel, const char 
 		return 1;
 	}
 	char *new_text;
-	asprintf(&new_text, "%s: %s", to, text);
+	if( asprintf(&new_text, "%s: %s", to, text) < 0 ){
+		session->last_error = LIBIRCCLIENT_ERR_NOMEM;
+		return 1;
+	}
 	int ret_val = irc_cmd_msg(session, channel, new_text);
 	free(new_text);
 	return ret_val;
