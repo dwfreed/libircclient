@@ -366,6 +366,7 @@ static void irc_process_incoming_data(struct irc_session *session, size_t proces
 				free(session->nick);
 				session->nick = strdup(params[0]);
 			}
+			free(nick);
 			if( session->callbacks.event_nick ){
 				session->callbacks.event_nick(session, command, prefix, params, param_index);
 			}
