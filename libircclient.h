@@ -26,6 +26,7 @@ int irc_cmd_kick(struct irc_session *session, const char *nick, const char *chan
 int irc_cmd_list(struct irc_session *session, const char *channel);
 int irc_cmd_me(struct irc_session *session, const char *nch, const char *text);
 int irc_cmd_msg(struct irc_session *session, const char *nch, const char *text);
+int irc_cmd_msg_to(struct irc_session *session, const char *channel, const char *to, const char *text);
 int irc_cmd_names(struct irc_session *session, const char *channel);
 int irc_cmd_nick(struct irc_session *session, const char *newnick);
 int irc_cmd_notice(struct irc_session *session, const char *nch, const char *text);
