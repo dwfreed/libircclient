@@ -22,7 +22,7 @@ ${LIBRARY_NAME}.a: ${OBJS}
 
 test: test.o test-server ${LIBRARY_NAME}.so
 	@echo "Building $@"
-	@${CC} -o $@ $< -lircclient ${LDFLAGS}
+	@${CC} -o $@ $< -Wl,-rpath,${PWD} -L${PWD} -lircclient ${LDFLAGS}
 
 test-server: test-server.o
 	@echo "Building $@"
@@ -32,17 +32,17 @@ global.h: libircclient.h
 
 libircclient.h: libircclient_errors.h libircclient_events.h libircclient_options.h libircclient_params.h libircclient_rfcnumerics.h libircclient_session.h
 
-%.o: %.c Makefile global.h
+%.o: %.c Makefile.test global.h
 	@echo "Compiling $<"
 	@${CC} ${CFLAGS} -c $< -o $@
 
-%.i: %.c Makefile global.h
+%.i: %.c Makefile.test global.h
 	@echo "Prepocessing $<"
 	@${CC} ${CFLAGS} -E $< -o $@
 
 clean:
 	@echo "Cleaning ${LIBRARY_NAME}"
-	@rm -f ${LIBRARY_NAME}.so ${LIBRARY_NAME}.a ${OBJS}
+	@rm -f ${LIBRARY_NAME}.so ${LIBRARY_NAME}.a ${OBJS} test test-server test.o test-server.o
 
 check: all
 	@echo "Checking ${LIBRARY_NAME}"
