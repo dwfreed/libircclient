@@ -5,11 +5,11 @@ OBJS = libircclient.o
 
 LIBS = glib-2.0 gthread-2.0
 
-CC = gcc -Wall -Werror -Wextra -O3 -fprofile-use -fprofile-correction
-CFLAGS = -D_GNU_SOURCE -fPIC $(shell pkg-config --cflags ${LIBS})
+CC = gcc -ggdb3 -Wall -Werror -Wextra -pg -fprofile-arcs -ftest-coverage -fprofile-generate
+CFLAGS = -D_GNU_SOURCE -D_FORTIFY_SOURCE=2 -fPIC $(shell pkg-config --cflags ${LIBS})
 LDFLAGS = $(shell pkg-config --libs ${LIBS})
 
-all: ${LIBRARY_NAME}.so ${LIBRARY_NAME}.a
+all: ${LIBRARY_NAME}.so ${LIBRARY_NAME}.a test test-server
 
 ${LIBRARY_NAME}.so: ${OBJS}
 	@echo "Building $@"
@@ -19,6 +19,14 @@ ${LIBRARY_NAME}.a: ${OBJS}
 	@echo "Building $@"
 	@$(AR) rc ${LIBRARY_NAME}.a ${OBJS}
 	@[[ -z "$(RANLIB)" ]] || $(RANLIB) ${LIBRARY_NAME}.a
+
+test: test.o test-server ${LIBRARY_NAME}.so
+	@echo "Building $@"
+	@${CC} -o $@ $< -lircclient ${LDFLAGS}
+
+test-server: test-server.o
+	@echo "Building $@"
+	@${CC} -o $@ $< ${LDFLAGS}
 
 global.h: libircclient.h
 
@@ -36,4 +44,9 @@ clean:
 	@echo "Cleaning ${LIBRARY_NAME}"
 	@rm -f ${LIBRARY_NAME}.so ${LIBRARY_NAME}.a ${OBJS}
 
-.PHONY: all clean
+check: all
+	@echo "Checking ${LIBRARY_NAME}"
+	@./test-server
+	@MALLOC_CHECK_=1 G_SLICE="all" G_DEBUG="gc-friendly" valgrind --leak-check=full --track-fds=yes --show-reachable=yes --track-origins=yes ./test
+
+.PHONY: all clean check
