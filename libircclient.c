@@ -244,6 +244,14 @@ int irc_connect6(struct irc_session *session, const char *server, unsigned short
 	return 0;
 }
 
+void irc_disconnect(struct irc_session *session){
+	if( session->socket > -1 ){
+		close(session->socket);
+	}
+	session->socket = -1;
+	session->state = LIBIRCCLIENT_STATE_INIT;
+}
+
 inline int irc_is_connected(struct irc_session *session){
 	return session->state == LIBIRCCLIENT_STATE_CONNECTED || session->state == LIBIRCCLIENT_STATE_CONNECTING;
 }
