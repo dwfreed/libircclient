@@ -1,35 +1,5 @@
 #include "global.h"
 
-int irc_errno(struct irc_session *session){
-	return session->last_error;
-}
-
-const char *irc_strerror(int ircerrno){
-	static const char *libircclient_strerror[LIBIRCCLIENT_ERR_MAX] = {
-		"No error",
-		"Invalid argument",
-		"Host not resolved",
-		"Socket error",
-		"Could not connect",
-		"Remove connection closed",
-		"Out of memory",
-		"Could not accept new connection",
-		"Object not found",
-		"Could not DCC send this object",
-		"Read error",
-		"Write error",
-		"Illegal operation for this state",
-		"Timeout error",
-		"Could not open file",
-		"IRC session terminated",
-		"IPv6 not supported"
-	};
-	if( ircerrno >= 0 && ircerrno < LIBIRCCLIENT_ERR_MAX )
-		return libircclient_strerror[ircerrno];
-	else
-		return "Invalid irc_errno value";
-}
-
 struct irc_session *irc_create_session(struct irc_callbacks *callbacks){
 	g_thread_init(NULL);
 	struct irc_session *session = (struct irc_session *)calloc(1, sizeof(struct irc_session));
@@ -604,4 +574,257 @@ int irc_send_raw(struct irc_session *session, const char *format, ...){
 	free(command);
 	free(new_format);
 	return 0;
+}
+
+int irc_cmd_channel_mode(struct irc_session *session, const char *channel, const char *mode){
+	if( !channel ){
+		session->last_error = LIBIRCCLIENT_ERR_INVAL;
+	}
+	if( mode ){
+		return irc_send_raw(session, "MODE %s %s", channel, mode);
+	} else {
+		return irc_send_raw(session, "MODE %s", channel);
+	}
+}
+
+int irc_cmd_ctcp_reply(struct irc_session *session, const char *nick, const char *reply){
+	if( !nick || !reply ){
+		session->last_error = LIBIRCCLIENT_ERR_INVAL;
+		return 1;
+	}
+	return irc_send_raw(session, "NOTICE %s :\1%s\1", nick, reply);
+}
+
+int irc_cmd_ctcp_request(struct irc_session *session, const char *nch, const char *request){
+	if( !nch || !request ){
+		session->last_error = LIBIRCCLIENT_ERR_INVAL;
+		return 1;
+	}
+	return irc_send_raw(session, "PRIVMSG %s :\1%s\1", nch, request);
+}
+
+int irc_cmd_invite(struct irc_session *session, const char *nick, const char *channel){
+	if( !channel || !nick ){
+		session->last_error = LIBIRCCLIENT_ERR_INVAL;
+		return 1;
+	}
+	return irc_send_raw(session, "INVITE %s %s", nick, channel);
+}
+
+int irc_cmd_join(struct irc_session *session, const char *channel, const char *key){
+	if( !channel ){
+		session->last_error = LIBIRCCLIENT_ERR_INVAL;
+		return 1;
+	}
+	if( key ){
+		return irc_send_raw(session, "JOIN %s :%s", channel, key);
+	} else {
+		return irc_send_raw(session, "JOIN %s :%s", channel);
+	}
+}
+
+int irc_cmd_kick(struct irc_session *session, const char *nick, const char *channel, const char *reason){
+	if( !channel || !nick ){
+		session->last_error = LIBIRCCLIENT_ERR_INVAL;
+		return 1;
+	}
+	if( reason ){
+		return irc_send_raw(session, "KICK %s %s :%s", channel, nick, reason);
+	} else {
+		return irc_send_raw(session, "KICK %s %s", channel, nick);
+	}
+}
+
+int irc_cmd_list(struct irc_session *session, const char *channel){
+	if( channel ){
+		return irc_send_raw(session, "LIST %s", channel);
+	} else {
+		return irc_send_raw(session, "LIST");
+	}
+}
+
+int irc_cmd_me(struct irc_session *session, const char *nch, const char *text){
+	if( !nch || !text ){
+		session->last_error = LIBIRCCLIENT_ERR_INVAL;
+		return 1;
+	}
+	return irc_send_raw(session, "PRIVMSG %s :\1ACTION %s\1", nch, text);
+}
+
+int irc_cmd_msg(struct irc_session *session, const char *nch, const char *text){
+	if( !nch || !text ){
+		session->last_error = LIBIRCCLIENT_ERR_INVAL;
+		return 1;
+	}
+	char *temp_text = strdup(text), *new_text = temp_text;
+	int length = strlen(new_text), max_text_length = 512 - (strlen(session->nick) + strlen(session->username) + strlen(session->hostname) + strlen(nch) + 17), ret_val;
+	while( length > 0 ){
+		ret_val = irc_send_raw(session, "PRIVMSG %s :%s", nch, new_text);
+		new_text = &new_text[max_text_length];
+		length -= max_text_length;
+	}
+	free(temp_text);
+	return ret_val;
+}
+
+int irc_cmd_msg_to(struct irc_session *session, const char *channel, const char *to, const char *text){
+	if( !channel || !to || !text ){
+		session->last_error = LIBIRCCLIENT_ERR_INVAL;
+		return 1;
+	}
+	char *new_text;
+	asprintf(&new_text, "%s: %s", to, text);
+	int ret_val = irc_cmd_msg(session, channel, new_text);
+	free(new_text);
+	return ret_val;
+}
+
+int irc_cmd_names(struct irc_session *session, const char *channel){
+	if( !channel ){
+		session->last_error = LIBIRCCLIENT_ERR_INVAL;
+		return 1;
+	}
+	return irc_send_raw(session, "NAMES %s", channel);
+}
+
+int irc_cmd_nick(struct irc_session *session, const char *newnick){
+	if( !newnick ){
+		session->last_error = LIBIRCCLIENT_ERR_INVAL;
+		return 1;
+	}
+	return irc_send_raw(session, "NICK %s", newnick);
+}
+
+int irc_cmd_notice(struct irc_session *session, const char *nch, const char *text){
+	if( !nch || !text ){
+		session->last_error = LIBIRCCLIENT_ERR_INVAL;
+		return 1;
+	}
+	return irc_send_raw(session, "NOTICE %s :%s", nch, text);
+}
+
+int irc_cmd_part(struct irc_session *session, const char *channel, const char *reason){
+	if( !channel ){
+		session->last_error = LIBIRCCLIENT_ERR_INVAL;
+		return 1;
+	}
+	if( reason ){
+		return irc_send_raw(session, "PART %s :%s", channel, reason);
+	} else {
+		return irc_send_raw(session, "PART %s", channel);
+	}
+}
+
+int irc_cmd_quit(struct irc_session *session, const char *reason){
+	if( reason ){
+		return irc_send_raw(session, "QUIT :%s", reason);
+	} else {
+		return irc_send_raw(session, "QUIT");
+	}
+}
+
+int irc_cmd_topic(struct irc_session *session, const char *channel, const char *topic){
+	if( !channel ){
+		session->last_error = LIBIRCCLIENT_ERR_INVAL;
+		return 1;
+	}
+	if( topic ){
+		return irc_send_raw(session, "TOPIC %s :%s", channel, topic);
+	} else {
+		return irc_send_raw(session, "TOPIC %s", channel);
+	}
+}
+
+int irc_cmd_user_mode(struct irc_session *session, const char *mode){
+	if( mode ){
+		return irc_send_raw(session, "MODE %s %s", session->nick, mode);
+	} else {
+		return irc_send_raw(session, "MODE %s", session->nick);
+	}
+}
+
+int irc_cmd_whois(struct irc_session *session, const char *nick){
+	if( !nick ){
+		session->last_error = LIBIRCCLIENT_ERR_INVAL;
+		return 1;
+	}
+	return irc_send_raw(session, "WHOIS %s %1$s", nick);
+}
+
+char *irc_target_get_nick(const char *target){
+	char *split_point = strstr(target, "!");
+	if( split_point ){
+		return strndup(target, split_point - target);
+	} else {
+		return strdup(target);
+	}
+}
+
+char *irc_target_get_username(const char *target){
+	char *split_point1 = strstr(target, "!");
+	char *split_point2 = strstr(target, "@");
+	if( split_point1 && split_point2 ){
+		return strndup(split_point1 + 1, split_point2 - split_point1 - 1);
+	} else if( split_point2 ){
+		return strndup(target, split_point2 - target);
+	} else if( split_point1 ){
+		return strdup(split_point1 + 1);
+	} else {
+		return strdup(target);
+	}
+}
+
+char *irc_target_get_hostname(const char *target){
+	char *split_point = strstr(target, "@");
+	if( split_point ){
+		return strdup(split_point + 1);
+	} else {
+		return strdup(target);
+	}
+}
+
+inline void irc_set_ctx(struct irc_session *session, void *ctx){
+	session->ctx = ctx;
+}
+
+inline void *irc_get_ctx(struct irc_session *session){
+	return session->ctx;
+}
+
+inline int irc_errno(struct irc_session *session){
+	return session->last_error;
+}
+
+const char *irc_strerror(int ircerrno){
+	static const char *libircclient_strerror[LIBIRCCLIENT_ERR_MAX] = {
+		"No error",
+		"Invalid argument",
+		"Host not resolved",
+		"Socket error",
+		"Could not connect",
+		"Remove connection closed",
+		"Out of memory",
+		"Could not accept new connection",
+		"Object not found",
+		"Could not DCC send this object",
+		"Read error",
+		"Write error",
+		"Illegal operation for this state",
+		"Timeout error",
+		"Could not open file",
+		"IRC session terminated",
+		"IPv6 not supported"
+	};
+	if( ircerrno >= 0 && ircerrno < LIBIRCCLIENT_ERR_MAX )
+		return libircclient_strerror[ircerrno];
+	else
+		return "Invalid irc_errno value";
+}
+
+inline void irc_option_set(struct irc_session *session, unsigned int option){
+	session->options |= option;
+}
+
+inline void irc_option_reset(struct irc_session *session, unsigned int option){
+	session->options &= ~option;
 }
