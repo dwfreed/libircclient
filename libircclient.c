@@ -577,3 +577,22 @@ int irc_run(struct irc_session *session){
 	}
 	return 0;
 }
+
+int irc_send_raw(struct irc_session *session, const char *format, ...){
+	if( session->state != LIBIRCCLIENT_STATE_CONNECTED ){
+		session->last_error = LIBIRCCLIENT_ERR_STATE;
+		return 1;
+	}
+	char *new_format = strdup(format), *command;
+	int format_length = strlen(format);
+	va_list va_arg_list;
+	new_format = (char *)realloc(new_format, format_length + 3);
+	strcat(new_format, "\r\n");
+	va_start(va_arg_list, format);
+	vasprintf(&command, new_format, va_arg_list);
+	va_end(va_arg_list);
+	g_async_queue_push(session->outgoing_queue, command);
+	free(command);
+	free(new_format);
+	return 0;
+}
