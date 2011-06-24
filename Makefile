@@ -6,8 +6,8 @@ OBJS = libircclient.o
 LIBS = glib-2.0 gthread-2.0
 
 CC = gcc
-CCFLAGS =
-CFLAGS = -O3 -Wall -Werror -Wextra -D_GNU_SOURCE -fPIC $(shell pkg-config --cflags ${LIBS})
+CCFLAGS = -fPIC
+CFLAGS = -Wall -Werror -Wextra -D_GNU_SOURCE $(shell pkg-config --cflags ${LIBS})
 LDFLAGS = $(shell pkg-config --libs ${LIBS})
 
 DEBUG = 0
@@ -17,14 +17,14 @@ ifeq (${DEBUG},1)
 	CCFLAGS += -pg -fprofile-arcs -ftest-coverage -fprofile-generate
 	DEBUG_OBJS = test test-server
 else
-	CCFLAGS += -fprofile-use -fprofile-correction
+	CCFLAGS += -O3 -fprofile-use -fprofile-correction
 endif
 
 all: ${LIBRARY_NAME}.so ${LIBRARY_NAME}.a ${DEBUG_OBJS}
 
 ${LIBRARY_NAME}.so: ${OBJS}
 	@echo "Building $@"
-	@${CC} ${CCFLAGS} -shared -nostartfiles -nostdlib -fPIC ${OBJS} ${LDFLAGS} -o $@
+	@${CC} ${CCFLAGS} -shared -nostartfiles -nostdlib ${OBJS} ${LDFLAGS} -o $@
 
 ${LIBRARY_NAME}.a: ${OBJS}
 	@echo "Building $@"
