@@ -511,6 +511,9 @@ static int irc_process_select_descriptors(struct irc_session *session, fd_set *i
 	}
 	if( FD_ISSET(session->socket, out_set) ){
 		int queue_length = g_async_queue_length(session->outgoing_queue);
+		if( session->options & LIBIRCCLIENT_OPTION_DEBUG ){
+			printf("[DEBUG] queue_length: %d\n", queue_length);
+		}
 		while(queue_length > 0){
 			int length;
 			char *outgoing_message = g_async_queue_pop(session->outgoing_queue);
