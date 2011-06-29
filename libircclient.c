@@ -507,7 +507,6 @@ static int irc_process_select_descriptors(struct irc_session *session, fd_set *i
 				for( i = 0; i < offset; ++i ){
 					printf("%c", session->incoming_buffer[i]);
 				}
-				printf("\n");
 			}
 			irc_process_incoming_data(session, offset - 2);
 			if( session->incoming_offset - offset ){
@@ -531,7 +530,7 @@ static int irc_process_select_descriptors(struct irc_session *session, fd_set *i
 				return 1;
 			}
 			if( session->options & LIBIRCCLIENT_OPTION_DEBUG ){
-				printf("SEND: %s\n", outgoing_message);
+				printf("SEND: %s", outgoing_message);
 			}
 			free(outgoing_message);
 			queue_length = g_async_queue_length(session->outgoing_queue);
