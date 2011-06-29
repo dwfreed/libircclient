@@ -18,7 +18,9 @@ void irc_destroy_session(struct irc_session *session){
 		session->socket = -1;
 	}
 	g_async_queue_unref(session->outgoing_queue);
-	free(session->incoming_buffer);
+	if( session->incoming_buffer ){
+		free(session->incoming_buffer);
+	}
 	if( session->server ){
 		free(session->server);
 	}
