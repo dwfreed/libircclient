@@ -245,17 +245,10 @@ static int irc_add_select_descriptors(struct irc_session *session, fd_set *in_se
 			*maxfd = session->socket;
 		}
 	} else if( session->state == LIBIRCCLIENT_STATE_CONNECTED ){
-		if( session->incoming_offset < LIBIRCCLIENT_BUFFER_SIZE - 1 ){
-			FD_SET(session->socket, in_set);
-			if( session->socket > *maxfd ){
-				*maxfd = session->socket;
-			}
-		}
-		if( g_async_queue_length(session->outgoing_queue) > 0 ){
-			FD_SET(session->socket, out_set);
-			if( session->socket > *maxfd ){
-				*maxfd = session->socket;
-			}
+		FD_SET(session->socket, in_set);
+		FD_SET(session->socket, out_set);
+		if( session->socket > *maxfd ){
+			*maxfd = session->socket;
 		}
 	}
 	return 0;

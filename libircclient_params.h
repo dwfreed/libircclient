@@ -3,7 +3,6 @@
 #ifndef IN_LIBIRCCLIENT_H
 	#error This file should not be included directly; include just libircclient.h
 #endif
-#define LIBIRCCLIENT_BUFFER_SIZE		1024
 #define LIBIRCCLIENT_STATE_INIT		0
 #define LIBIRCCLIENT_STATE_CONNECTING	2
 #define LIBIRCCLIENT_STATE_CONNECTED	3
