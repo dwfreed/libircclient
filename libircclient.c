@@ -629,7 +629,7 @@ int irc_cmd_join(struct irc_session *session, const char *channel, const char *k
 	if( key ){
 		return irc_send_raw(session, "JOIN %s :%s", channel, key);
 	} else {
-		return irc_send_raw(session, "JOIN %s :%s", channel);
+		return irc_send_raw(session, "JOIN %s", channel);
 	}
 }
 
