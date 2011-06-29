@@ -246,7 +246,9 @@ static int irc_add_select_descriptors(struct irc_session *session, fd_set *in_se
 		}
 	} else if( session->state == LIBIRCCLIENT_STATE_CONNECTED ){
 		FD_SET(session->socket, in_set);
-		FD_SET(session->socket, out_set);
+		if( g_async_queue_length(session->outgoing_queue) > 0 ){
+			FD_SET(session->socket, out_set);
+		}
 		if( session->socket > *maxfd ){
 			*maxfd = session->socket;
 		}
@@ -543,10 +545,11 @@ int irc_run(struct irc_session *session){
 	while( irc_is_connected(session) ){
 		fd_set in_set, out_set;
 		int maxfd = 0;
+		struct timeval wait_time = {0L, 1000L};
 		FD_ZERO(&in_set);
 		FD_ZERO(&out_set);
 		irc_add_select_descriptors(session, &in_set, &out_set, &maxfd);
-		if( select(maxfd + 1, &in_set, &out_set, 0, NULL) < 0 ){
+		if( select(maxfd + 1, &in_set, &out_set, 0, &wait_time) < 0 ){
 			if( errno == EINTR ){
 				continue;
 			}
