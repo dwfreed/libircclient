@@ -33,7 +33,7 @@ ${LIBRARY_NAME}.a: ${OBJS}
 
 test: test.o test-server ${LIBRARY_NAME}.so
 	@echo "Building $@"
-	@${CC} ${CCFLAGS} -o $@ $< -Wl,-rpath,${PWD} -L${PWD} -lircclient ${LDFLAGS}
+	@${CC} ${CCFLAGS} -o $@ $< -Wl,-rpath,${CURDIR} -L${CURDIR} -lircclient ${LDFLAGS}
 
 test-server: test-server.o
 	@echo "Building $@"
