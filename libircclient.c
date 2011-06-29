@@ -583,7 +583,6 @@ int irc_send_raw(struct irc_session *session, const char *format, ...){
 	}
 	va_end(va_arg_list);
 	g_async_queue_push(session->outgoing_queue, command);
-	free(command);
 	free(new_format);
 	return 0;
 }
