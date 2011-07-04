@@ -434,6 +434,7 @@ static void irc_process_incoming_data(struct irc_session *session, size_t proces
 			}
 		}
 	}
+	free(params);
 }
 
 static int irc_process_select_descriptors(struct irc_session *session, fd_set *in_set, fd_set *out_set){
