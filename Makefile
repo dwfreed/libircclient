@@ -7,7 +7,7 @@ LIBS = glib-2.0 gthread-2.0
 
 CC = gcc
 CCFLAGS = -fPIC
-CFLAGS = -Wall -Werror -Wextra -D_GNU_SOURCE $(shell pkg-config --cflags ${LIBS})
+CFLAGS = -mtune=native -Wall -Werror -Wextra -D_GNU_SOURCE $(shell pkg-config --cflags ${LIBS})
 LDFLAGS = $(shell pkg-config --libs ${LIBS})
 
 DEBUG = 0
@@ -17,7 +17,7 @@ ifeq (${DEBUG},1)
 	CCFLAGS += -pg -fprofile-arcs -ftest-coverage -fprofile-generate
 	DEBUG_OBJS = test test-server
 else
-	CCFLAGS += -O3 -fprofile-use -fprofile-correction
+	CCFLAGS += -O3
 endif
 
 all: ${LIBRARY_NAME}.so ${LIBRARY_NAME}.a ${DEBUG_OBJS}
