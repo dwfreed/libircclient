@@ -761,7 +761,7 @@ int irc_cmd_whois(struct irc_session *session, const char *nick){
 		session->last_error = LIBIRCCLIENT_ERR_INVAL;
 		return 1;
 	}
-	return irc_send_raw(session, "WHOIS %s %1$s", nick);
+	return irc_send_raw(session, "WHOIS %1$s %1$s", nick);
 }
 
 char *irc_target_get_nick(const char *target){
