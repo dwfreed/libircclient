@@ -230,7 +230,7 @@ void irc_disconnect(struct irc_session *session){
 	session->state = LIBIRCCLIENT_STATE_INIT;
 }
 
-inline int irc_is_connected(struct irc_session *session){
+int irc_is_connected(struct irc_session *session){
 	return session->state == LIBIRCCLIENT_STATE_CONNECTED || session->state == LIBIRCCLIENT_STATE_CONNECTING;
 }
 
@@ -796,15 +796,15 @@ char *irc_target_get_hostname(const char *target){
 	}
 }
 
-inline void irc_set_ctx(struct irc_session *session, void *ctx){
+void irc_set_ctx(struct irc_session *session, void *ctx){
 	session->ctx = ctx;
 }
 
-inline void *irc_get_ctx(struct irc_session *session){
+void *irc_get_ctx(struct irc_session *session){
 	return session->ctx;
 }
 
-inline int irc_errno(struct irc_session *session){
+int irc_errno(struct irc_session *session){
 	return session->last_error;
 }
 
@@ -834,10 +834,10 @@ const char *irc_strerror(int ircerrno){
 		return "Invalid irc_errno value";
 }
 
-inline void irc_option_set(struct irc_session *session, unsigned int option){
+void irc_option_set(struct irc_session *session, unsigned int option){
 	session->options |= option;
 }
 
-inline void irc_option_reset(struct irc_session *session, unsigned int option){
+void irc_option_reset(struct irc_session *session, unsigned int option){
 	session->options &= ~option;
 }
