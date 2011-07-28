@@ -478,6 +478,7 @@ static int irc_process_select_descriptors(struct irc_session *session, fd_set *i
 		irc_send_raw(session, "USER %s unknown unknown :%s", session->username, session->realname);
 	}
 	if( session->state != LIBIRCCLIENT_STATE_CONNECTED ){
+		session->last_error = LIBIRCCLIENT_ERR_STATE;
 		return 1;
 	}
 	if( FD_ISSET(session->socket, in_set) ){
