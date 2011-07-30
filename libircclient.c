@@ -547,7 +547,7 @@ int irc_run(struct irc_session *session){
 	while( irc_is_connected(session) ){
 		fd_set in_set, out_set;
 		int maxfd = 0;
-		struct timeval wait_time = {0L, 1000L};
+		struct timeval wait_time = {0L, 10000L};
 		FD_ZERO(&in_set);
 		FD_ZERO(&out_set);
 		irc_add_select_descriptors(session, &in_set, &out_set, &maxfd);
