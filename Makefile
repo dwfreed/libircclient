@@ -14,7 +14,6 @@ DEBUG = 0
 
 ifeq (${DEBUG},1)
 	CFLAGS += -ggdb3 -D_FORTIFY_SOURCE=2
-	CCFLAGS += -pg -fprofile-arcs -ftest-coverage -fprofile-generate
 	DEBUG_OBJS = test test-server
 else
 	CCFLAGS += -O3
