@@ -548,15 +548,19 @@ int irc_run(struct irc_session *session){
 		fd_set in_set, out_set;
 		int maxfd = 0;
 		struct timeval wait_time = {0L, 100000L};
+		int ret;
 		FD_ZERO(&in_set);
 		FD_ZERO(&out_set);
 		irc_add_select_descriptors(session, &in_set, &out_set, &maxfd);
-		if( select(maxfd + 1, &in_set, &out_set, 0, &wait_time) < 0 ){
+		if( (ret = select(maxfd + 1, &in_set, &out_set, 0, &wait_time)) < 0 ){
 			if( errno == EINTR ){
 				continue;
 			}
 			session->last_error = LIBIRCCLIENT_ERR_TERMINATED;
 			return 1;
+		}
+		if( ret == 0 ){
+			continue;
 		}
 		if( irc_process_select_descriptors(session, &in_set, &out_set) ){
 			return 1;
