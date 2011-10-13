@@ -5,8 +5,3 @@ syntax: glob
 *.so
 *.a
 cscope.out
-test
-test-server
-gmon.out
-*.gcno
-*.gcda
