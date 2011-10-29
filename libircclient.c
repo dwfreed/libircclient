@@ -312,9 +312,6 @@ static void irc_process_incoming_data(struct irc_session *session, size_t proces
 		if( (code == IRC_RFC_RPL_ENDOFMOTD || code == IRC_RFC_ERR_NOMOTD) && !session->motd_received ){
 			session->motd_received = 1;
 			irc_cmd_whois(session, session->nick);
-			if( session->callbacks.event_connect ){
-				session->callbacks.event_connect(session, "CONNECT", prefix, params, param_index);
-			}
 		} else if( code == IRC_RFC_RPL_WHOISUSER ){
 			if(!strcmp(session->nick, params[1])){
 				if(session->hostname){
@@ -325,6 +322,10 @@ static void irc_process_incoming_data(struct irc_session *session, size_t proces
 				}
 				session->hostname = strdup(params[3]);
 				session->username = strdup(params[2]);
+				if( session->motd_received && !session->connect_called && session->callbacks.event_connect ){
+					session->connect_called = 1;
+					session->callbacks.event_connect(session, "CONNECT", prefix, params, param_index);
+				}
 			}
 		}
 		if( session->callbacks.event_numeric ){

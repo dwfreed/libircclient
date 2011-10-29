@@ -16,6 +16,7 @@ struct irc_session {
 	int socket;
 	int state;
 	int motd_received;
+	int connect_called;
 	char *server;
 	char *server_password;
 	char *nick;
