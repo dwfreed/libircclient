@@ -810,6 +810,18 @@ void *irc_get_ctx(struct irc_session *session){
 	return session->ctx;
 }
 
+char *irc_get_nick(struct irc_session *session){
+	return session->nick;
+}
+
+char *irc_get_username(struct irc_session *session){
+	return session->username;
+}
+
+char *irc_get_hostname(struct irc_session *session){
+	return session->hostname;
+}
+
 int irc_errno(struct irc_session *session){
 	return session->last_error;
 }
