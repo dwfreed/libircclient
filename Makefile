@@ -27,7 +27,7 @@ ${LIBRARY_NAME}.so: ${OBJS}
 ${LIBRARY_NAME}.a: ${OBJS}
 	@echo "Building $@"
 	@$(AR) rc ${LIBRARY_NAME}.a ${OBJS}
-	@[[ -z "$(RANLIB)" ]] || $(RANLIB) ${LIBRARY_NAME}.a
+	@[ -z "$(RANLIB)" ] || $(RANLIB) ${LIBRARY_NAME}.a
 
 global.h: libircclient.h
 
