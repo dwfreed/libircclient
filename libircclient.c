@@ -156,7 +156,7 @@ int irc_connect6(struct irc_session *session, const char *server, unsigned short
 	memset(&saddr, 0, sizeof(saddr));
 	saddr.sin6_family = AF_INET6;
 	saddr.sin6_port = htons(port);
-	if( (session->socket = socket(AF_INET, SOCK_STREAM, 0)) == -1 || fcntl(session->socket, F_SETFL, fcntl(session->socket, F_GETFL, 0) | O_NONBLOCK) ){
+	if( (session->socket = socket(AF_INET6, SOCK_STREAM, 0)) == -1 || fcntl(session->socket, F_SETFL, fcntl(session->socket, F_GETFL, 0) | O_NONBLOCK) ){
 		session->last_error = LIBIRCCLIENT_ERR_SOCKET;
 		return 1;
 	}
