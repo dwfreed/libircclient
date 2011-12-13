@@ -1,0 +1,7 @@
+syntax: glob
+*.swp
+*.i
+*.o
+*.so
+*.a
+cscope.out
