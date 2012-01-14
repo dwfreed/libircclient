@@ -19,6 +19,7 @@ struct irc_session {
 	int connect_called;
 	char *server;
 	char *server_password;
+	char *account;
 	char *nick;
 	char *username;
 	char *hostname;
