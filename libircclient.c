@@ -27,6 +27,9 @@ void irc_destroy_session(struct irc_session *session){
 	if( session->server_password ){
 		free(session->server_password);
 	}
+	if( session->account ){
+		free(session->account);
+	}
 	if( session->nick ){
 		free(session->nick);
 	}
@@ -52,11 +55,25 @@ int irc_connect(struct irc_session *session, const char *server, unsigned short 
 		session->last_error = LIBIRCCLIENT_ERR_STATE;
 		return 1;
 	}
+	if( session->options & LIBIRCCLIENT_OPTION_SASL ){
+		if( !server_password ){
+			session->last_error = LIBIRCCLIENT_ERR_INVAL;
+			return 1;
+		}
+		char *separator = strstr(server_password, ":");
+		if( !separator ){
+			session->last_error = LIBIRCCLIENT_ERR_INVAL;
+			return 1;
+		}
+		session->account = strndup(server_password, separator - server_password);
+		session->server_password = strdup(separator + 1);
+	} else {
+		if( server_password ){
+			session->server_password = strdup(server_password);
+		}
+	}
 	if( username ){
 		session->username = strdup(username);
-	}
-	if( server_password ){
-		session->server_password = strdup(server_password);
 	}
 	if( realname ){
 		session->realname = strdup(realname);
@@ -142,11 +159,25 @@ int irc_connect6(struct irc_session *session, const char *server, unsigned short
 		session->last_error = LIBIRCCLIENT_ERR_STATE;
 		return 1;
 	}
+	if( session->options & LIBIRCCLIENT_OPTION_SASL ){
+		if( !server_password ){
+			session->last_error = LIBIRCCLIENT_ERR_INVAL;
+			return 1;
+		}
+		char *separator = strstr(server_password, ":");
+		if( !separator ){
+			session->last_error = LIBIRCCLIENT_ERR_INVAL;
+			return 1;
+		}
+		session->account = strndup(server_password, separator - server_password);
+		session->server_password = strdup(separator + 1);
+	} else {
+		if( server_password ){
+			session->server_password = strdup(server_password);
+		}
+	}
 	if( username ){
 		session->username = strdup(username);
-	}
-	if( server_password ){
-		session->server_password = strdup(server_password);
 	}
 	if( realname ){
 		session->realname = strdup(realname);
@@ -266,6 +297,40 @@ static int irc_findcrlf(const char *buffer, int length){
 	return 0;
 }
 
+char *base64_encode(const unsigned char *data, unsigned long long length){
+	static const char *alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+	unsigned long long ret_length = (unsigned long long)(length * 4 / 3.0 + 0.67);
+	if( ret_length % 4 != 0 ){
+		ret_length -= (ret_length % 4);
+		ret_length += 4;
+	}
+	char *ret_val = calloc(ret_length + 1, sizeof(char));
+	if( ret_val ){
+		unsigned long long i, j;
+		for( i = 0, j = 0; i < length - (length % 3); i += 3 ){
+			unsigned int temp = data[i] << 16 | data[i + 1] << 8 | data[i + 2];
+			ret_val[j++] = alphabet[temp >> 18];
+			ret_val[j++] = alphabet[temp >> 12 & 63];
+			ret_val[j++] = alphabet[temp >> 6 & 63];
+			ret_val[j++] = alphabet[temp & 63];
+		}
+		if( length % 3 == 1 ){
+			unsigned int temp = data[i] << 16;
+			ret_val[j++] = alphabet[temp >> 18];
+			ret_val[j++] = alphabet[temp >> 12 & 63];
+			ret_val[j++] = '=';
+			ret_val[j++] = '=';
+		} else if( length % 3 == 2 ){
+			unsigned int temp = data[i] << 16 | data[i + 1] << 8;
+			ret_val[j++] = alphabet[temp >> 18];
+			ret_val[j++] = alphabet[temp >> 12 & 63];
+			ret_val[j++] = alphabet[temp >> 6 & 63];
+			ret_val[j++] = '=';
+		}
+	}
+	return ret_val;
+}
+
 static void irc_process_incoming_data(struct irc_session *session, size_t process_length){
 	char buffer[511], *p, *s, *command = 0, *prefix = 0;
 	const char **params;
@@ -328,7 +393,12 @@ static void irc_process_incoming_data(struct irc_session *session, size_t proces
 				}
 			}
 		}
-		if( session->callbacks.event_numeric ){
+		if( session->options & LIBIRCCLIENT_OPTION_SASL && ( code == 903 || code == 904 || code == 905 || code == 906 || code == 907 ) ){
+			irc_send_raw(session, "CAP END");
+			if( code != 903 ){
+				fprintf(stderr, "[ERROR] SASL authentication failed!");
+			}
+		} else if( session->callbacks.event_numeric ){
 			session->callbacks.event_numeric(session, code, prefix, params, param_index);
 		}
 	} else {
@@ -429,6 +499,41 @@ static void irc_process_incoming_data(struct irc_session *session, size_t proces
 			if( session->callbacks.event_invite ){
 				session->callbacks.event_invite(session, command, prefix, params, param_index);
 			}
+		} else if( session->options & LIBIRCCLIENT_OPTION_SASL && !strcmp(command, "CAP") && !session->connect_called ){
+			if( !strcmp(params[1], "LS") ){
+				if( strcasestr(params[2], "sasl") ){
+					irc_send_raw(session, "CAP REQ :sasl");
+				} else {
+					fprintf(stderr, "[ERROR] SASL not supported; not authenticating!");
+					session->options &= ~LIBIRCCLIENT_OPTION_SASL;
+				}
+			} else if( !strcmp(params[1], "ACK") ){
+				irc_send_raw(session, "AUTHENTICATE PLAIN");
+			}
+		} else if( session->options & LIBIRCCLIENT_OPTION_SASL && !strcmp(command, "AUTHENTICATE") ){
+			int account_length = strlen(session->account);
+			int password_length = strlen(session->server_password);
+			int auth_data_length = account_length * 2 + password_length + 2;
+			char *auth_data = calloc(auth_data_length, sizeof(char));
+			char *auth_data_start = auth_data;
+			auth_data = mempcpy(auth_data, session->account, account_length + 1);
+			auth_data = mempcpy(auth_data, session->account, account_length + 1);
+			auth_data = mempcpy(auth_data, session->server_password, password_length + 1);
+			auth_data = auth_data_start;
+			char *encoded_data = base64_encode((unsigned char *)auth_data, auth_data_length);
+			free(auth_data);
+			int encoded_data_length = strlen(encoded_data);
+			int encoded_data_offset = 0;
+			while( encoded_data_length >= 400 ){
+				irc_send_raw(session, "AUTHENTICATE %.400s", encoded_data + encoded_data_offset);
+				encoded_data_length -= 400;
+				encoded_data_offset += 400;
+			}
+			if( encoded_data_length ){
+				irc_send_raw(session, "AUTHENTICATE %s", encoded_data + encoded_data_offset);
+			} else {
+				irc_send_raw(session, "AUTHENTICATE +");
+			}
 		} else {
 			if( session->callbacks.event_unknown ){
 				session->callbacks.event_unknown(session, command, prefix, params, param_index);
@@ -466,7 +571,9 @@ static int irc_process_select_descriptors(struct irc_session *session, fd_set *i
 			}
 		}
 		session->state = LIBIRCCLIENT_STATE_CONNECTED;
-		if( session->server_password ){
+		if( session->options & LIBIRCCLIENT_OPTION_SASL ){
+			irc_send_raw(session, "CAP LS");
+		} else if( session->server_password ){
 			irc_send_raw(session, "PASS %s", session->server_password);
 		}
 		irc_send_raw(session, "NICK %s", session->nick);
