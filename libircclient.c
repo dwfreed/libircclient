@@ -518,7 +518,7 @@ static void irc_process_incoming_data(struct irc_session *session, size_t proces
 			char *auth_data_start = auth_data;
 			auth_data = mempcpy(auth_data, session->account, account_length + 1);
 			auth_data = mempcpy(auth_data, session->account, account_length + 1);
-			auth_data = mempcpy(auth_data, session->server_password, password_length + 1);
+			auth_data = mempcpy(auth_data, session->server_password, password_length);
 			auth_data = auth_data_start;
 			char *encoded_data = base64_encode((unsigned char *)auth_data, auth_data_length);
 			free(auth_data);
