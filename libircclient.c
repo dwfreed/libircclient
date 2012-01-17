@@ -702,6 +702,7 @@ int irc_send_raw(struct irc_session *session, const char *format, ...){
 int irc_cmd_channel_mode(struct irc_session *session, const char *channel, const char *mode){
 	if( !channel ){
 		session->last_error = LIBIRCCLIENT_ERR_INVAL;
+		return 1;
 	}
 	if( mode ){
 		return irc_send_raw(session, "MODE %s %s", channel, mode);
