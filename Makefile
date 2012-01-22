@@ -7,7 +7,7 @@ LIBS = glib-2.0 gthread-2.0
 
 CC = gcc
 CCFLAGS = -fPIC
-CFLAGS = -mtune=native -Wall -Werror -Wextra -D_GNU_SOURCE $(shell pkg-config --cflags ${LIBS})
+CFLAGS = -march=native -Wall -Werror -Wextra -D_GNU_SOURCE $(shell pkg-config --cflags ${LIBS})
 LDFLAGS = $(shell pkg-config --libs ${LIBS})
 
 DEBUG = 0
