@@ -12,7 +12,7 @@ LDFLAGS = -fPIC $(shell pkg-config --libs ${LIBS})
 DEBUG = 0
 
 ifeq (${DEBUG},1)
-	CFLAGS += -ggdb3 -D_FORTIFY_SOURCE=2
+	CFLAGS += -ggdb3
 else
 	CFLAGS += -O3
 	LDFLAGS += -O3
