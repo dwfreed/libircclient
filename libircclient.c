@@ -376,9 +376,9 @@ static void irc_process_incoming_data(struct irc_session *session, size_t proces
 	if( code ){
 		if( (code == IRC_RFC_RPL_ENDOFMOTD || code == IRC_RFC_ERR_NOMOTD) && !session->motd_received ){
 			session->motd_received = 1;
-			irc_cmd_whois(session, session->nick);
-		} else if( code == IRC_RFC_RPL_WHOISUSER ){
-			if(!strcmp(session->nick, params[1])){
+			irc_send_raw(session, "WHO %s", session->nick);
+		} else if( code == IRC_RFC_RPL_WHOREPLY ){
+			if(!strcmp(session->nick, params[5])){
 				if(session->hostname){
 					free(session->hostname);
 				}
